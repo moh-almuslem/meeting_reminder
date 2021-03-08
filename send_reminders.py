@@ -1,4 +1,4 @@
-im#!/usr/bin/env python3
+#!/usr/bin/env python3
 
 import datetime
 import email
@@ -31,11 +31,21 @@ see you there.
 ''')
   return message
 
-def send_message(message, emails):
+def read_names(contacts):
+  names = {}
+  with open(contacts) as csvfile:
+    reader = csv.reader(csvfile)
+    for row in reader:
+      names[row[0]] = row[1]
+  return names
+
+def send_message(date, title, emails, message, contacts):
   smtp = smtplib.SMTP('localhost')
-  message['Form'] = 'noreply@example.com'
+  names = read_names(contacts)
   for email in emails.split(','):
-    del message['To']
+    name = names[email]
+    message = message_template(date, title, name)
+    message['From'] = 'noreply@example.com'
     message['To'] = email
     smtp.send_message(message)
   smtp.quit()
@@ -46,12 +56,12 @@ def main():
     return usage()
 
   try:
-      date, title emails = sys.argv[1].split('|')
+      date, title, emails = sys.argv[1].split('|')
       message = message_templaate(date, title)
       send_message(message, emails)
       print ("Successfully sent reminders to:", emails)
   except Exception as e:
       print ("Failure to send email with: {}".format(e), file=sys.stderr)
 
-if __name__ == "__main__"
+if __name__ == "__main__":
   sys.exit(main())
